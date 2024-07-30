@@ -10,6 +10,8 @@ import streamlit as st
 from PIL import Image
 import google.generativeai as genai
 
+genai.configure(api_key="AIzaSyBC8QHmbUHNWDhu4dC7v5bppEySFemctTM")
+
 # Initialize model and embeddings
 llm = ChatGoogleGenerativeAI(model="gemini-pro")
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
@@ -47,11 +49,6 @@ def get_link_from_db(item_name):
     except Exception as e:
         return f"An error occurred: {e}"
 
-
-
-# Ensure your Streamlit app has access to the necessary functions and setup
-# ...
-
 # Initialize Streamlit app
 st.set_page_config(page_title="MakeIt")
 st.markdown("<h1 style='text-align: center; color: white;'>MakeIt</h1>", unsafe_allow_html=True)
@@ -67,22 +64,19 @@ if uploaded_file:
 submit = st.button("Tell me about the image")
 
 input_prompt = """
-You are a masterchef who wants to create a item shown in the image or mentioned in the text. List down all the required items you will need to create that item.
-List all those items in the following format and describe the process for making the product using those items:
-    1. Item 1
+You are creator who wants to create a item shown in the image or mentioned in the text. List down all the required items you will need to create that item.
+List all those items in the following format:
     2. Item 2
     3. Item 3
     and so on.
-At last, also list down all the required tools to make it.
 Make sure to only give items only no extra text and don't group similar items.
-Dont seperate items and tools list them without any extra heading
+Dont separate items and tools list them without any extra heading
 Never give extra information or comments just show items name only. It is very important to just show only items names.
 And  also avoid using random sentences like "your favourite","as per your choice".
 Give only top priority requirements.
  
  
 """
-
 
 # Initialize the Google Generative AI model
 def get_gemini_response(input_text, image, prompt):
@@ -100,6 +94,24 @@ def get_gemini_response(input_text, image, prompt):
     except Exception as e:
         return f"An error occurred: {e}"
 
+
+#adding process generating function
+input_prompt_steps = """
+You are a chef or electrician or creator who wants to create a item shown in the image or mentioned in the text. List down all the required items you will need to create that item.
+List all those items in the following format:
+    2. Item 2
+    3. Item 3
+    and so on.
+Dont show these items in response just do as asked below: 
+You are a creator and have all the items listed. Please provide a detailed step-by-step guide to create the item using these items.
+Make sure to include all the necessary steps without skipping any important details.
+"""
+
+get_steps = st.button("Get Steps to Create Product")
+if get_steps:
+    response_steps = get_gemini_response(input_text, image, input_prompt_steps)
+    st.subheader("Steps to Create the Product:")
+    st.write(response_steps)
 
 if submit:
     response = get_gemini_response(input_text, image, input_prompt)
